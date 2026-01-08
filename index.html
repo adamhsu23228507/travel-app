@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="theme-color" content="#ffb3c6">
+    <title>高雄台東 家族旅遊</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #ff8fab;
+            --primary-light: #ffb3c6;
+            --primary-dark: #fb6f92;
+            --secondary: #a0ced9;
+            --secondary-light: #c9e4de;
+            --accent: #ffc09f;
+            --accent-yellow: #ffee93;
+            --accent-green: #adf7b6;
+            --bg-main: #fff9f9;
+            --bg-card: #ffffff;
+            --bg-soft: #fff0f3;
+            --text-primary: #4a3f3f;
+            --text-secondary: #6d5e5e;
+            --text-muted: #9a8a8a;
+            --border-color: #ffe4e8;
+            --shadow-soft: 0 2px 15px rgba(255, 143, 171, 0.2);
+            --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.08);
+            --radius: 24px;
+            --radius-sm: 16px;
+            --radius-xs: 12px;
+            --safe-top: env(safe-area-inset-top);
+            --safe-bottom: env(safe-area-inset-bottom);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        html, body { height: 100%; overflow: hidden; }
+        body { font-family: 'Noto Sans TC', -apple-system, sans-serif; background: var(--bg-main); color: var(--text-primary); line-height: 1.7; font-size: 17px; }
+        
+        .app-container { height: 100%; display: flex; flex-direction: column; background: var(--bg-main); }
+        
+        .app-header { background: linear-gradient(135deg, var(--primary-light) 0%, var(--primary) 100%); padding: calc(var(--safe-top) + 16px) 20px 24px; flex-shrink: 0; }
+        .header-content { display: flex; align-items: center; gap: 14px; }
+        .header-icon { width: 56px; height: 56px; background: white; border-radius: 18px; display: flex; align-items: center; justify-content: center; font-size: 32px; box-shadow: var(--shadow-soft); }
+        .header-info { flex: 1; }
+        .header-title { font-size: 1.4rem; font-weight: 700; color: white; text-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .header-meta { font-size: 0.95rem; color: rgba(255,255,255,0.95); display: flex; gap: 12px; margin-top: 4px; flex-wrap: wrap; }
+        
+        .app-content { flex: 1; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; padding: 16px 16px 20px; background: var(--bg-main); }
+        .app-content::-webkit-scrollbar { width: 0; display: none; }
+        
+        .notice-card { background: linear-gradient(135deg, var(--accent-yellow) 0%, var(--accent) 100%); border-radius: var(--radius); padding: 16px 18px; margin-bottom: 20px; display: flex; align-items: flex-start; gap: 12px; box-shadow: var(--shadow-card); }
+        .notice-icon { font-size: 28px; flex-shrink: 0; line-height: 1; }
+        .notice-text { font-size: 1rem; color: var(--text-primary); line-height: 1.6; font-weight: 500; }
+        
+        .tab-content { display: none; animation: slideUp 0.3s ease; }
+        .tab-content.active { display: block; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .day-card { background: var(--bg-card); border-radius: var(--radius); margin-bottom: 18px; overflow: hidden; box-shadow: var(--shadow-card); }
+        .day-header { padding: 18px; display: flex; align-items: center; gap: 16px; cursor: pointer; transition: background 0.2s; }
+        .day-header:active { background: var(--bg-soft); }
+        .day-badge { width: 58px; height: 58px; border-radius: 18px; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; font-weight: 700; }
+        .day-badge.day1 { background: linear-gradient(135deg, #ff8fab, #fb6f92); }
+        .day-badge.day2 { background: linear-gradient(135deg, #a0ced9, #7ec8e3); }
+        .day-badge.day3 { background: linear-gradient(135deg, #adf7b6, #7dd87d); }
+        .day-badge.day4 { background: linear-gradient(135deg, #ffc09f, #ffaa80); }
+        .day-badge-num { font-size: 1.5rem; line-height: 1; }
+        .day-badge-text { font-size: 0.75rem; opacity: 0.9; }
+        .day-info { flex: 1; }
+        .day-date { font-size: 0.9rem; color: var(--text-muted); font-weight: 500; }
+        .day-title { font-size: 1.15rem; font-weight: 700; color: var(--text-primary); margin-top: 2px; }
+        .day-theme { font-size: 0.95rem; color: var(--primary-dark); margin-top: 4px; font-weight: 500; }
+        .day-toggle { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; color: var(--text-muted); transition: transform 0.3s; font-size: 1.1rem; }
+        .day-card.expanded .day-toggle { transform: rotate(180deg); }
+        .day-body { max-height: 0; overflow: hidden; transition: max-height 0.4s ease; }
+        .day-card.expanded .day-body { max-height: 2500px; }
+        .day-body-inner { padding: 0 18px 18px; }
+        
+        .schedule-item { display: flex; gap: 14px; padding: 14px 0; border-bottom: 1px dashed var(--border-color); }
+        .schedule-item:last-child { border-bottom: none; }
+        .schedule-time { width: 65px; flex-shrink: 0; font-size: 0.9rem; font-weight: 700; color: var(--primary-dark); padding-top: 2px; }
+        .schedule-content { flex: 1; }
+        .schedule-title { font-weight: 700; font-size: 1.1rem; }
+        .schedule-desc { font-size: 1rem; color: var(--text-secondary); margin-top: 6px; }
+        .schedule-list { margin-top: 8px; padding-left: 20px; }
+        .schedule-list li { font-size: 0.95rem; color: var(--text-secondary); margin-bottom: 5px; line-height: 1.6; }
+        
+        .backup-box { background: var(--bg-soft); border-radius: var(--radius-sm); padding: 14px; margin-top: 16px; }
+        .backup-title { font-size: 0.95rem; font-weight: 700; color: var(--secondary); margin-bottom: 10px; }
+        .backup-item { background: white; border-radius: var(--radius-xs); padding: 12px 14px; margin-bottom: 10px; }
+        .backup-item:last-child { margin-bottom: 0; }
+        .backup-name { font-size: 1rem; font-weight: 700; }
+        .backup-desc { font-size: 0.9rem; color: var(--text-muted); margin-top: 4px; }
+        
+        /* 輪播圖片 - 通用 */
+        .carousel { position: relative; width: 100%; height: 200px; overflow: hidden; border-radius: var(--radius) var(--radius) 0 0; }
+        .carousel-inner { display: flex; transition: transform 0.4s ease; height: 100%; }
+        .carousel-item { min-width: 100%; height: 100%; background-size: cover; background-position: center; position: relative; }
+        .carousel-item::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 80px; background: linear-gradient(transparent, rgba(0,0,0,0.5)); }
+        .carousel-caption { position: absolute; bottom: 12px; left: 16px; color: white; font-size: 0.85rem; font-weight: 500; z-index: 2; }
+        .carousel-dots { position: absolute; bottom: 12px; right: 16px; display: flex; gap: 6px; z-index: 2; }
+        .carousel-dot { width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,0.5); cursor: pointer; transition: all 0.3s; }
+        .carousel-dot.active { background: white; width: 20px; border-radius: 4px; }
+        .carousel-btn { position: absolute; top: 50%; transform: translateY(-50%); width: 32px; height: 32px; border-radius: 50%; background: rgba(255,255,255,0.9); border: none; font-size: 1rem; cursor: pointer; z-index: 2; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
+        .carousel-btn:active { transform: translateY(-50%) scale(0.95); }
+        .carousel-btn.prev { left: 10px; }
+        .carousel-btn.next { right: 10px; }
+        
+        /* 景點詳細卡片 */
+        .spot-detail-card { background: var(--bg-card); border-radius: var(--radius); overflow: hidden; margin-bottom: 20px; box-shadow: var(--shadow-card); }
+        .spot-content { padding: 16px 18px; }
+        .spot-title-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+        .spot-name-large { font-size: 1.2rem; font-weight: 900; color: var(--text-primary); }
+        .spot-badge { padding: 5px 12px; border-radius: 16px; font-size: 0.8rem; font-weight: 700; }
+        .spot-badge.recommend { background: linear-gradient(135deg, var(--primary-light), var(--primary)); color: white; }
+        .spot-badge.must { background: linear-gradient(135deg, var(--accent-yellow), var(--accent)); color: var(--text-primary); }
+        .spot-badge.backup { background: var(--secondary-light); color: var(--text-secondary); }
+        .spot-info-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; font-size: 0.9rem; color: var(--text-secondary); }
+        .spot-info-row span:first-child { font-size: 1rem; }
+        .spot-desc { font-size: 0.95rem; color: var(--text-secondary); line-height: 1.7; margin: 12px 0; padding: 12px; background: var(--bg-soft); border-radius: var(--radius-xs); }
+        .spot-tags { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+        .spot-tag { font-size: 0.8rem; padding: 5px 12px; border-radius: 14px; font-weight: 600; }
+        .spot-tag.pink { background: var(--primary-light); color: white; }
+        .spot-tag.green { background: var(--accent-green); color: var(--text-primary); }
+        .spot-tag.blue { background: var(--secondary); color: white; }
+        .spot-tag.yellow { background: var(--accent-yellow); color: var(--text-primary); }
+        .spot-actions { display: flex; gap: 10px; margin-top: 14px; }
+        .spot-btn { flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px; border-radius: var(--radius-sm); font-size: 0.95rem; font-weight: 700; text-decoration: none; transition: all 0.2s; }
+        .spot-btn:active { transform: scale(0.98); }
+        .spot-btn.primary { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; }
+        .spot-btn.secondary { background: var(--bg-soft); color: var(--text-primary); border: 2px solid var(--border-color); }
+        
+        .section-title { font-size: 1.1rem; font-weight: 700; color: var(--text-primary); margin: 24px 0 16px; padding-left: 14px; border-left: 4px solid var(--primary); }
+        
+        /* 飯店卡片 */
+        .hotel-detail-card { background: var(--bg-card); border-radius: var(--radius); overflow: hidden; margin-bottom: 20px; box-shadow: var(--shadow-card); }
+        .hotel-content { padding: 18px; }
+        .hotel-title-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+        .hotel-name-large { font-size: 1.25rem; font-weight: 900; color: var(--text-primary); }
+        .hotel-badge { background: linear-gradient(135deg, var(--primary-light), var(--primary)); color: white; padding: 6px 14px; border-radius: 20px; font-size: 0.85rem; font-weight: 700; }
+        .hotel-badge.blue { background: linear-gradient(135deg, var(--secondary-light), var(--secondary)); }
+        .hotel-info-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; font-size: 0.95rem; color: var(--text-secondary); }
+        .hotel-info-row span:first-child { font-size: 1.1rem; }
+        .hotel-desc { font-size: 0.95rem; color: var(--text-secondary); line-height: 1.7; margin: 14px 0; padding: 14px; background: var(--bg-soft); border-radius: var(--radius-xs); }
+        .hotel-features { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 14px 0; }
+        .hotel-feature { display: flex; align-items: center; gap: 10px; padding: 12px; background: var(--bg-soft); border-radius: var(--radius-xs); font-size: 0.95rem; font-weight: 500; }
+        .hotel-feature span:first-child { font-size: 1.3rem; }
+        .hotel-actions { display: flex; gap: 10px; margin-top: 16px; }
+        .hotel-btn { flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 14px; border-radius: var(--radius-sm); font-size: 1rem; font-weight: 700; text-decoration: none; transition: all 0.2s; }
+        .hotel-btn:active { transform: scale(0.98); }
+        .hotel-btn.primary { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; }
+        .hotel-btn.secondary { background: var(--bg-soft); color: var(--text-primary); border: 2px solid var(--border-color); }
+        
+        /* 美食 */
+        .food-section { margin-bottom: 20px; }
+        .food-section-title { font-size: 1.05rem; font-weight: 700; color: var(--text-primary); margin-bottom: 12px; padding-left: 12px; border-left: 4px solid var(--primary); }
+        .food-list { display: flex; flex-direction: column; gap: 10px; }
+        .food-item { background: var(--bg-card); border-radius: var(--radius-sm); padding: 14px 16px; display: flex; align-items: center; gap: 14px; box-shadow: var(--shadow-card); }
+        .food-icon { font-size: 1.6rem; }
+        .food-name { font-size: 1.05rem; font-weight: 700; }
+        .food-type { font-size: 0.9rem; color: var(--text-muted); margin-top: 2px; }
+        
+        /* 交通 */
+        .transport-card { background: var(--bg-card); border-radius: var(--radius); overflow: hidden; margin-bottom: 14px; box-shadow: var(--shadow-card); }
+        .transport-header { padding: 14px 18px; display: flex; align-items: center; gap: 12px; color: white; font-weight: 700; font-size: 1.05rem; }
+        .transport-header span:first-child { font-size: 1.4rem; }
+        .transport-header.train { background: linear-gradient(135deg, var(--secondary), #7ec8e3); }
+        .transport-header.hsr { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); }
+        .transport-header.car { background: linear-gradient(135deg, var(--accent-green), #7dd87d); }
+        .transport-header.taxi { background: linear-gradient(135deg, var(--accent-yellow), var(--accent)); }
+        .transport-body { padding: 16px 18px; }
+        .transport-route { display: flex; align-items: center; justify-content: center; gap: 14px; padding: 12px; background: var(--bg-soft); border-radius: var(--radius-xs); margin-bottom: 12px; }
+        .transport-city { text-align: center; }
+        .transport-city-name { font-size: 1.15rem; font-weight: 700; }
+        .transport-city-station { font-size: 0.85rem; color: var(--text-muted); margin-top: 2px; }
+        .transport-arrow { font-size: 1.4rem; color: var(--primary); }
+        .transport-details { display: flex; flex-direction: column; gap: 8px; }
+        .transport-detail { display: flex; justify-content: space-between; font-size: 0.95rem; }
+        .transport-label { color: var(--text-muted); }
+        .transport-value { font-weight: 700; }
+        
+        /* 預算 */
+        .budget-summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 18px; }
+        .budget-box { background: var(--bg-card); border-radius: var(--radius-sm); padding: 16px 12px; text-align: center; box-shadow: var(--shadow-card); }
+        .budget-box-label { font-size: 0.85rem; color: var(--text-muted); font-weight: 500; }
+        .budget-box-value { font-size: 1.3rem; font-weight: 900; margin-top: 6px; }
+        .budget-box-value.highlight { color: var(--primary-dark); }
+        .budget-table { background: var(--bg-card); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow-card); }
+        .budget-row { display: flex; justify-content: space-between; padding: 16px 18px; border-bottom: 1px solid var(--border-color); font-size: 1rem; }
+        .budget-row:last-child { border-bottom: none; }
+        .budget-row.total { background: linear-gradient(135deg, var(--primary-light), var(--primary)); color: white; font-weight: 700; font-size: 1.05rem; }
+        
+        .members-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 14px; }
+        .member-card { background: var(--bg-soft); border-radius: var(--radius-sm); padding: 16px 12px; text-align: center; }
+        .member-icon { font-size: 2.2rem; margin-bottom: 8px; }
+        .member-title { font-size: 0.9rem; font-weight: 700; }
+        .member-count { font-size: 0.85rem; color: var(--text-muted); margin-top: 2px; }
+        
+        .mrt-card { background: var(--bg-card); border-radius: var(--radius); padding: 18px; margin-top: 14px; box-shadow: var(--shadow-card); }
+        .mrt-title { font-size: 1.05rem; font-weight: 700; margin-bottom: 14px; }
+        .mrt-route { display: flex; align-items: center; gap: 12px; padding: 12px; background: var(--bg-soft); border-radius: var(--radius-xs); margin-bottom: 10px; font-size: 0.95rem; }
+        .mrt-station { background: #e74c3c; color: white; padding: 5px 12px; border-radius: 8px; font-size: 0.85rem; font-weight: 700; }
+        .mrt-time { font-size: 0.85rem; color: var(--text-muted); margin-left: auto; }
+        
+        .souvenir-section { margin-top: 24px; }
+        .souvenir-title { font-size: 1rem; font-weight: 700; color: var(--primary-dark); margin: 14px 0 10px; }
+        .souvenir-list { display: flex; flex-wrap: wrap; gap: 10px; }
+        .souvenir-item { background: var(--bg-card); padding: 10px 16px; border-radius: 24px; font-size: 0.95rem; box-shadow: var(--shadow-card); font-weight: 500; }
+        
+        .card { background: var(--bg-card); border-radius: var(--radius); padding: 18px; margin-bottom: 14px; box-shadow: var(--shadow-card); }
+        .card-header { display: flex; align-items: center; gap: 14px; margin-bottom: 14px; }
+        .card-icon { width: 48px; height: 48px; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 1.6rem; }
+        .card-icon.pink { background: linear-gradient(135deg, var(--primary-light), var(--primary)); }
+        .card-title { font-size: 1.1rem; font-weight: 700; }
+        .card-subtitle { font-size: 0.9rem; color: var(--text-muted); margin-top: 2px; }
+        
+        .app-nav { background: var(--bg-card); border-top: 1px solid var(--border-color); padding: 10px 8px calc(var(--safe-bottom) + 10px); display: flex; justify-content: space-around; flex-shrink: 0; box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.06); }
+        .nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 8px 10px; background: none; border: none; color: var(--text-muted); font-family: inherit; font-size: 0.8rem; cursor: pointer; transition: all 0.2s; border-radius: var(--radius-xs); font-weight: 500; }
+        .nav-item:active { transform: scale(0.95); }
+        .nav-item.active { color: var(--primary-dark); }
+        .nav-item.active .nav-icon { background: linear-gradient(135deg, var(--primary-light), var(--primary)); color: white; transform: scale(1.1); }
+        .nav-icon { width: 42px; height: 42px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; border-radius: 14px; transition: all 0.2s; }
+        .nav-label { font-weight: 600; }
+        @keyframes bounce { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.15); } }
+        .bounce { animation: bounce 0.4s ease; }
+    </style>
+</head>
+<body>
+<div class="app-container">
+    <header class="app-header">
+        <div class="header-content">
+            <div class="header-icon">🌸</div>
+            <div class="header-info">
+                <div class="header-title">高雄＋台東 家族旅遊</div>
+                <div class="header-meta">
+                    <span>📅 2/7-2/10</span>
+                    <span>👨‍👩‍👧‍👦 9人</span>
+                    <span>🏠 3家庭</span>
+                </div>
+            </div>
+        </div>
+    </header>
+    <main class="app-content">
+        <div class="notice-card">
+            <span class="notice-icon">💡</span>
+            <span class="notice-text">行程寧可多，當天彈性跳過｜長輩友善｜小孩不無聊</span>
+        </div>
+        
+        <!-- 行程 Tab -->
+        <div id="tab-schedule" class="tab-content active">
+            <div class="day-card expanded" data-day="1">
+                <div class="day-header" onclick="toggleDay(this)">
+                    <div class="day-badge day1"><span class="day-badge-num">01</span><span class="day-badge-text">DAY</span></div>
+                    <div class="day-info"><div class="day-date">2/7（五）</div><div class="day-title">桃園 → 高雄</div><div class="day-theme">🎯 捷運體驗＋駁二＋夜間分流</div></div>
+                    <div class="day-toggle">▼</div>
+                </div>
+                <div class="day-body"><div class="day-body-inner">
+                    <div class="schedule-item"><div class="schedule-time">07:00</div><div class="schedule-content"><div class="schedule-title">🚄 高鐵出發</div><div class="schedule-desc">桃園站 → 左營站</div></div></div>
+                    <div class="schedule-item"><div class="schedule-time">中午</div><div class="schedule-content"><div class="schedule-title">🍜 午餐＋寄行李</div><div class="schedule-desc">市區午餐 → 萬豪寄放行李</div></div></div>
+                    <div class="schedule-item"><div class="schedule-time">下午</div><div class="schedule-content"><div class="schedule-title">🎨 駁二藝術特區</div><ul class="schedule-list"><li>大型裝置藝術拍照</li><li>哈瑪星鐵道館（親子）</li><li>咖啡店休息</li></ul></div></div>
+                    <div class="schedule-item"><div class="schedule-time">晚餐</div><div class="schedule-content"><div class="schedule-title">🍴 萬豪或義享天地</div><div class="schedule-desc">9人聚餐，空間舒適</div></div></div>
+                    <div class="schedule-item"><div class="schedule-time">晚上</div><div class="schedule-content"><div class="schedule-title">🌙 分流活動</div><ul class="schedule-list"><li>👶 小孩＋長輩：飯店遊戲室</li><li>👫 大人：六合夜市 60-90分</li></ul></div></div>
+                    <div class="backup-box"><div class="backup-title">🔄 備選方案</div><div class="backup-item"><div class="backup-name">A｜旗津半日</div><div class="backup-desc">渡輪 → 旗津老街拍照</div></div><div class="backup-item"><div class="backup-name">B｜台鋁商場</div><div class="backup-desc">室內冷氣，可取代駁二</div></div><div class="backup-item"><div class="backup-name">C｜義享天地</div><div class="backup-desc">體力不足時最省力</div></div></div>
+                </div></div>
+            </div>
+            <div class="day-card" data-day="2">
+                <div class="day-header" onclick="toggleDay(this)">
+                    <div class="day-badge day2"><span class="day-badge-num">02</span><span class="day-badge-text">DAY</span></div>
+                    <div class="day-info"><div class="day-date">2/8（六）</div><div class="day-title">高雄 → 台東</div><div class="day-theme">🎯 午餐＋輕鬆景點＋進日暉</div></div>
+                    <div class="day-toggle">▼</div>
+                </div>
+                <div class="day-body"><div class="day-body-inner">
+                    <div class="schedule-item"><div class="schedule-time">上午</div><div class="schedule-content"><div class="schedule-title">🧳 退房出發</div><div class="schedule-desc">前往高雄火車站</div></div></div>
+                    <div class="schedule-item"><div class="schedule-time">10:30</div><div class="schedule-content"><div class="schedule-title">🚃 台鐵移動</div><div class="schedule-desc">自強161 → 12:15抵達台東</div></div></div>
+                    <div class="schedule-item"><div class="schedule-time">抵達</div><div class="schedule-content"><div class="schedule-title">🚗 取車＋午餐</div><ul class="schedule-list"><li>租車 2 台</li><li>米苔目／合菜簡餐</li></ul></div></div>
+                    <div class="schedule-item"><div class="schedule-time">下午</div><div class="schedule-content"><div class="schedule-title">🏞️ 景點擇一</div><ul class="schedule-list"><li>⭐ 鹿野高台（推薦）</li><li>卑南文化公園</li><li>台東森林公園</li></ul></div></div>
+                    <div class="schedule-item"><div class="schedule-time">傍晚</div><div class="schedule-content"><div class="schedule-title">🏨 日暉渡假村</div><div class="schedule-desc">Check-in → 泡湯 → 晚餐</div></div></div>
+                </div></div>
+            </div>
+            <div class="day-card" data-day="3">
+                <div class="day-header" onclick="toggleDay(this)">
+                    <div class="day-badge day3"><span class="day-badge-num">03</span><span class="day-badge-text">DAY</span></div>
+                    <div class="day-info"><div class="day-date">2/9（日）</div><div class="day-title">台東山線一日</div><div class="day-theme">🎯 池上騎車＋關山放風</div></div>
+                    <div class="day-toggle">▼</div>
+                </div>
+                <div class="day-body"><div class="day-body-inner">
+                    <div class="schedule-item"><div class="schedule-time">上午</div><div class="schedule-content"><div class="schedule-title">🚴 池上伯朗大道</div><div class="schedule-desc">電動自行車 1.5-2 小時</div></div></div>
+                    <div class="schedule-item"><div class="schedule-time">中午</div><div class="schedule-content"><div class="schedule-title">🍱 池上便當</div><div class="schedule-desc">必吃在地美食</div></div></div>
+                    <div class="schedule-item"><div class="schedule-time">下午</div><div class="schedule-content"><div class="schedule-title">🌳 關山親水公園</div><div class="schedule-desc">草地大、長輩可坐休息</div></div></div>
+                    <div class="schedule-item"><div class="schedule-time">加碼</div><div class="schedule-content"><div class="schedule-title">➕ 視體力擇 1-2</div><ul class="schedule-list"><li>初鹿牧場</li><li>原生植物園（雨備）</li><li>鐵花村文創市集</li></ul></div></div>
+                    <div class="schedule-item"><div class="schedule-time">晚上</div><div class="schedule-content"><div class="schedule-title">♨️ 回日暉休息</div><div class="schedule-desc">晚餐＋泡湯</div></div></div>
+                </div></div>
+            </div>
+            <div class="day-card" data-day="4">
+                <div class="day-header" onclick="toggleDay(this)">
+                    <div class="day-badge day4"><span class="day-badge-num">04</span><span class="day-badge-text">DAY</span></div>
+                    <div class="day-info"><div class="day-date">2/10（一）</div><div class="day-title">回程日</div><div class="day-theme">🎯 不排景點，最大彈性</div></div>
+                    <div class="day-toggle">▼</div>
+                </div>
+                <div class="day-body"><div class="day-body-inner">
+                    <div class="schedule-item"><div class="schedule-time">上午</div><div class="schedule-content"><div class="schedule-title">🌅 日暉早餐</div><div class="schedule-desc">整理行李、退房</div></div></div>
+                    <div class="schedule-item"><div class="schedule-time">中午</div><div class="schedule-content"><div class="schedule-title">🍜 市區午餐</div><div class="schedule-desc">還車 → 前往火車站</div></div></div>
+                    <div class="schedule-item"><div class="schedule-time">13:56</div><div class="schedule-content"><div class="schedule-title">🚃 台鐵返程</div><div class="schedule-desc">自強477直達中壢（19:24抵達）</div></div></div>
+                    <div class="schedule-item"><div class="schedule-time">晚間</div><div class="schedule-content"><div class="schedule-title">🏠 返家</div><div class="schedule-desc">中壢 → 楊梅（計程車×2）</div></div></div>
+                </div></div>
+            </div>
+        </div>
+        
+        <!-- 住宿 Tab -->
+        <div id="tab-hotel" class="tab-content">
+            <div class="hotel-detail-card">
+                <div class="carousel" id="carousel-h1">
+                    <div class="carousel-inner">
+                        <div class="carousel-item" style="background-image: url('https://cf.bstatic.com/xdata/images/hotel/max1024x768/339038498.jpg')"><div class="carousel-caption">飯店外觀</div></div>
+                        <div class="carousel-item" style="background-image: url('https://cf.bstatic.com/xdata/images/hotel/max1024x768/339038525.jpg')"><div class="carousel-caption">豪華客房</div></div>
+                        <div class="carousel-item" style="background-image: url('https://cf.bstatic.com/xdata/images/hotel/max1024x768/339038555.jpg')"><div class="carousel-caption">室內泳池</div></div>
+                        <div class="carousel-item" style="background-image: url('https://cf.bstatic.com/xdata/images/hotel/max1024x768/339038483.jpg')"><div class="carousel-caption">兒童遊戲室</div></div>
+                        <div class="carousel-item" style="background-image: url('https://cf.bstatic.com/xdata/images/hotel/max1024x768/339038534.jpg')"><div class="carousel-caption">自助早餐</div></div>
+                    </div>
+                    <button class="carousel-btn prev" onclick="moveCarousel('carousel-h1', -1)">‹</button>
+                    <button class="carousel-btn next" onclick="moveCarousel('carousel-h1', 1)">›</button>
+                    <div class="carousel-dots" id="dots-h1"></div>
+                </div>
+                <div class="hotel-content">
+                    <div class="hotel-title-row"><div class="hotel-name-large">🏨 高雄萬豪酒店</div><div class="hotel-badge">1 晚</div></div>
+                    <div class="hotel-info-row"><span>📍</span><span>高雄市鼓山區龍德新路222號</span></div>
+                    <div class="hotel-info-row"><span>📞</span><span>07-5599111</span></div>
+                    <div class="hotel-desc">高雄萬豪酒店聳立於愛河之心旁，是北高雄的魅力新地標。酒店擁有 700 間典雅精緻的客房，與義享天地購物中心共構，1~7樓為購物商場，樓下就有滿滿的商店跟美食。距離捷運凹子底站步行約5-8分鐘，交通非常便利。</div>
+                    <div class="hotel-features">
+                        <div class="hotel-feature"><span>🧒</span><span>大型兒童遊戲室</span></div>
+                        <div class="hotel-feature"><span>🏊</span><span>室內恆溫泳池</span></div>
+                        <div class="hotel-feature"><span>🛍️</span><span>直連義享天地</span></div>
+                        <div class="hotel-feature"><span>🍳</span><span>豐盛自助早餐</span></div>
+                        <div class="hotel-feature"><span>💪</span><span>健身中心/SPA</span></div>
+                        <div class="hotel-feature"><span>🅿️</span><span>免費停車場</span></div>
+                    </div>
+                    <div class="hotel-actions">
+                        <a href="https://www.google.com/maps/dir/?api=1&destination=22.6697,120.2986" target="_blank" class="hotel-btn primary"><span>📍</span><span>導航前往</span></a>
+                        <a href="tel:07-5599111" class="hotel-btn secondary"><span>📞</span><span>撥打電話</span></a>
+                    </div>
+                </div>
+            </div>
+            <div class="hotel-detail-card">
+                <div class="carousel" id="carousel-h2">
+                    <div class="carousel-inner">
+                        <div class="carousel-item" style="background-image: url('https://cf.bstatic.com/xdata/images/hotel/max1024x768/39266155.jpg')"><div class="carousel-caption">渡假村外觀</div></div>
+                        <div class="carousel-item" style="background-image: url('https://cf.bstatic.com/xdata/images/hotel/max1024x768/39266147.jpg')"><div class="carousel-caption">Villa房型</div></div>
+                        <div class="carousel-item" style="background-image: url('https://cf.bstatic.com/xdata/images/hotel/max1024x768/39266118.jpg')"><div class="carousel-caption">戶外泳池</div></div>
+                        <div class="carousel-item" style="background-image: url('https://cf.bstatic.com/xdata/images/hotel/max1024x768/39266127.jpg')"><div class="carousel-caption">溫泉設施</div></div>
+                        <div class="carousel-item" style="background-image: url('https://cf.bstatic.com/xdata/images/hotel/max1024x768/524891986.jpg')"><div class="carousel-caption">自助早餐</div></div>
+                    </div>
+                    <button class="carousel-btn prev" onclick="moveCarousel('carousel-h2', -1)">‹</button>
+                    <button class="carousel-btn next" onclick="moveCarousel('carousel-h2', 1)">›</button>
+                    <div class="carousel-dots" id="dots-h2"></div>
+                </div>
+                <div class="hotel-content">
+                    <div class="hotel-title-row"><div class="hotel-name-large">🏨 日暉國際渡假村</div><div class="hotel-badge blue">2 晚</div></div>
+                    <div class="hotel-info-row"><span>📍</span><span>台東縣池上鄉新興村新興107號</span></div>
+                    <div class="hotel-info-row"><span>📞</span><span>089-861111</span></div>
+                    <div class="hotel-desc">座落於花東縱谷中心點，東為海岸山脈、西為中央山脈，是台東地區同時擁有五星級標章及溫泉標章雙認證的優質渡假村。鄰近池上火車站及伯朗大道，全區採低建蔽率建築，翠綠田園景觀環繞，提供免費接駁巴士往返池上火車站！</div>
+                    <div class="hotel-features">
+                        <div class="hotel-feature"><span>♨️</span><span>天然溫泉</span></div>
+                        <div class="hotel-feature"><span>🏊</span><span>戶外泳池</span></div>
+                        <div class="hotel-feature"><span>🎮</span><span>桌球/Switch</span></div>
+                        <div class="hotel-feature"><span>🍳</span><span>豐盛自助早餐</span></div>
+                        <div class="hotel-feature"><span>🚌</span><span>免費接駁車</span></div>
+                        <div class="hotel-feature"><span>🚴</span><span>自行車租借</span></div>
+                    </div>
+                    <div class="hotel-actions">
+                        <a href="https://www.google.com/maps/dir/?api=1&destination=23.1069,121.2206" target="_blank" class="hotel-btn primary"><span>📍</span><span>導航前往</span></a>
+                        <a href="tel:089-861111" class="hotel-btn secondary"><span>📞</span><span>撥打電話</span></a>
+                    </div>
+                </div>
+            </div>
+            <div class="mrt-card">
+                <div class="mrt-title">🚇 高雄捷運指南</div>
+                <div class="mrt-route"><span class="mrt-station">左營</span><span>→</span><span style="flex:1">萬豪（R13凹子底）</span><span class="mrt-time">步行5-8分</span></div>
+                <div class="mrt-route"><span class="mrt-station">左營</span><span>→</span><span style="flex:1">六合夜市（R10美麗島）</span><span class="mrt-time">出站即到</span></div>
+            </div>
+        </div>
+        
+        <!-- 景點 Tab - 全新設計 -->
+        <div id="tab-spots" class="tab-content">
+            <div class="section-title">📍 高雄景點</div>
+            
+            <!-- 駁二藝術特區 -->
+            <div class="spot-detail-card">
+                <div class="carousel" id="carousel-s1">
+                    <div class="carousel-inner">
+                        <div class="carousel-item" style="background-image: url('https://www.taiwan.net.tw/att/1/big_scenic_spots/pic_A12-00229_14.jpg')"><div class="carousel-caption">駁二藝術特區入口</div></div>
+                        <div class="carousel-item" style="background-image: url('https://www.taiwan.net.tw/att/1/big_scenic_spots/pic_A12-00229_12.jpg')"><div class="carousel-caption">大型裝置藝術</div></div>
+                        <div class="carousel-item" style="background-image: url('https://www.taiwan.net.tw/att/1/big_scenic_spots/pic_A12-00229_8.jpg')"><div class="carousel-caption">彩繪倉庫群</div></div>
+                        <div class="carousel-item" style="background-image: url('https://www.taiwan.net.tw/att/1/big_scenic_spots/pic_A12-00229_5.jpg')"><div class="carousel-caption">哈瑪星鐵道園區</div></div>
+                    </div>
+                    <button class="carousel-btn prev" onclick="moveCarousel('carousel-s1', -1)">‹</button>
+                    <button class="carousel-btn next" onclick="moveCarousel('carousel-s1', 1)">›</button>
+                    <div class="carousel-dots" id="dots-s1"></div>
+                </div>
+                <div class="spot-content">
+                    <div class="spot-title-row"><div class="spot-name-large">🎨 駁二藝術特區</div><div class="spot-badge recommend">推薦</div></div>
+                    <div class="spot-info-row"><span>📍</span><span>高雄市鹽埕區大勇路1號</span></div>
+                    <div class="spot-info-row"><span>🕐</span><span>10:00-18:00（週五至週日延至20:00）</span></div>
+                    <div class="spot-desc">駁二藝術特區坐落於高雄港第二號接駁碼頭，是國內唯一臨港的藝術舞台。原為港口儲貨倉庫，現已轉型為文創、休閒遊憩及觀光景點。園區分為大勇、大義、蓬萊三個倉庫群，有大型裝置藝術、哈瑪星鐵道館、誠品書店、in89電影院等，非常適合親子同遊！</div>
+                    <div class="spot-tags">
+                        <span class="spot-tag pink">親子友善</span>
+                        <span class="spot-tag green">拍照聖地</span>
+                        <span class="spot-tag blue">文創藝術</span>
+                        <span class="spot-tag yellow">免費入園</span>
+                    </div>
+                    <div class="spot-actions">
+                        <a href="https://www.google.com/maps/dir/?api=1&destination=22.6200,120.2816" target="_blank" class="spot-btn primary"><span>📍</span><span>導航前往</span></a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 六合夜市 -->
+            <div class="spot-detail-card">
+                <div class="carousel" id="carousel-s2">
+                    <div class="carousel-inner">
+                        <div class="carousel-item" style="background-image: url('https://www.taiwan.net.tw/att/1/big_scenic_spots/pic_2245_6.jpg')"><div class="carousel-caption">六合夜市入口</div></div>
+                        <div class="carousel-item" style="background-image: url('https://www.taiwan.net.tw/att/1/big_scenic_spots/pic_2245_7.jpg')"><div class="carousel-caption">熱鬧攤販</div></div>
+                        <div class="carousel-item" style="background-image: url('https://www.taiwan.net.tw/att/1/big_scenic_spots/pic_2245_8.jpg')"><div class="carousel-caption">道地美食</div></div>
+                        <div class="carousel-item" style="background-image: url('https://www.taiwan.net.tw/att/1/big_scenic_spots/pic_2245_5.jpg')"><div class="carousel-caption">夜市風光</div></div>
+                    </div>
+                    <button class="carousel-btn prev" onclick="moveCarousel('carousel-s2', -1)">‹</button>
+                    <button class="carousel-btn next" onclick="moveCarousel('carousel-s2', 1)">›</button>
+                    <div class="carousel-dots" id="dots-s2"></div>
+                </div>
+                <div class="spot-content">
+                    <div class="spot-title-row"><div class="spot-name-large">🏮 六合夜市</div><div class="spot-badge must">必逛</div></div>
+                    <div class="spot-info-row"><span>📍</span><span>高雄市新興區六合二路</span></div>
+                    <div class="spot-info-row"><span>🕐</span><span>17:00-02:00（每日營業）</span></div>
+                    <div class="spot-desc">六合夜市是高雄最具代表性、知名度最高的夜市，興起於1950年代，全長約350公尺。緊鄰捷運美麗島站11號出口，交通超便利！必吃美食有海產粥、鹽蒸蝦、木瓜牛奶、筒仔米糕、土魠魚羹等，是體驗道地台灣味小吃的好去處。</div>
+                    <div class="spot-tags">
+                        <span class="spot-tag yellow">美食天堂</span>
+                        <span class="spot-tag pink">觀光夜市</span>
+                        <span class="spot-tag blue">交通便利</span>
+                    </div>
+                    <div class="spot-actions">
+                        <a href="https://www.google.com/maps/dir/?api=1&destination=22.6321,120.2992" target="_blank" class="spot-btn primary"><span>📍</span><span>導航前往</span></a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 旗津 -->
+            <div class="spot-detail-card">
+                <div class="carousel" id="carousel-s3">
+                    <div class="carousel-inner">
+                        <div class="carousel-item" style="background-image: url('https://www.taiwan.net.tw/att/1/big_scenic_spots/pic_200_7.jpg')"><div class="carousel-caption">旗津渡輪</div></div>
+                        <div class="carousel-item" style="background-image: url('https://www.taiwan.net.tw/att/1/big_scenic_spots/pic_200_3.jpg')"><div class="carousel-caption">旗津老街</div></div>
+                        <div class="carousel-item" style="background-image: url('https://www.taiwan.net.tw/att/1/big_scenic_spots/pic_200_5.jpg')"><div class="carousel-caption">旗津海岸</div></div>
+                        <div class="carousel-item" style="background-image: url('https://www.taiwan.net.tw/att/1/big_scenic_spots/pic_200_8.jpg')"><div class="carousel-caption">旗後燈塔</div></div>
+                    </div>
+                    <button class="carousel-btn prev" onclick="moveCarousel('carousel-s3', -1)">‹</button>
+                    <button class="carousel-btn next" onclick="moveCarousel('carousel-s3', 1)">›</button>
+                    <div class="carousel-dots" id="dots-s3"></div>
+                </div>
+                <div class="spot-content">
+                    <div class="spot-title-row"><div class="spot-name-large">⛴️ 旗津風景區</div><div class="spot-badge backup">備選</div></div>
+                    <div class="spot-info-row"><span>📍</span><span>高雄市旗津區</span></div>
+                    <div class="spot-info-row"><span>🕐</span><span>渡輪06:00-24:00</span></div>
+                    <div class="spot-desc">旗津是高雄最早發展的地區，搭乘渡輪跨越高雄港僅需5-10分鐘，是遊客體驗港都風情的好選擇。旗津老街有各式海產小吃，可順遊旗後砲台、旗後燈塔等古蹟，也可以在海邊踏浪看夕陽，非常適合半日遊！</div>
+                    <div class="spot-tags">
+                        <span class="spot-tag blue">渡輪體驗</span>
+                        <span class="spot-tag yellow">海鮮美食</span>
+                        <span class="spot-tag green">海灘踏浪</span>
+                    </div>
+                    <div class="spot-actions">
+                        <a href="https://www.google.com/maps/dir/?api=1&destination=22.6108,120.2654" target="_blank" class="spot-btn primary"><span>📍</span><span>導航前往</span></a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="section-title">📍 台東景點</div>
+            
+            <!-- 鹿野高台 -->
+            <div class="spot-detail-card">
+                <div class="carousel" id="carousel-s4">
+                    <div class="carousel-inner">
+                        <div class="carousel-item" style="background-image: url('https://www.taiwan.net.tw/att/1/big_scenic_spots/pic_A12-00330_8.jpg')"><div class="carousel-caption">鹿野高台全景</div></div>
+                        <div class="carousel-item" style="background-image: url('https://www.taiwan.net.tw/att/1/big_scenic_spots/pic_A12-00330_5.jpg')"><div class="carousel-caption">翠綠草坡</div></div>
+                        <div class="carousel-item" style="background-image: url('https://www.taiwan.net.tw/att/1/big_scenic_spots/pic_A12-00330_3.jpg')"><div class="carousel-caption">熱氣球活動</div></div>
+                        <div class="carousel-item" style="background-image: url('https://www.taiwan.net.tw/att/1/big_scenic_spots/pic_A12-00330_7.jpg')"><div class="carousel-caption">縱谷美景</div></div>
+                    </div>
+                    <button class="carousel-btn prev" onclick="moveCarousel('carousel-s4', -1)">‹</button>
+                    <button class="carousel-btn next" onclick="moveCarousel('carousel-s4', 1)">›</button>
+                    <div class="carousel-dots" id="dots-s4"></div>
+                </div>
+                <div class="spot-content">
+                    <div class="spot-title-row"><div class="spot-name-large">🎈 鹿野高台</div><div class="spot-badge recommend">⭐推薦</div></div>
+                    <div class="spot-info-row"><span>📍</span><span>台東縣鹿野鄉永安村高台路46號</span></div>
+                    <div class="spot-info-row"><span>🕐</span><span>全天開放</span></div>
+                    <div class="spot-desc">鹿野高台擁有絕佳視野，能夠一覽整個高台地區與卑南溪谷底的田野景色，是台東最知名的觀光景點之一。每年6-8月舉辦熱氣球嘉年華，吸引全球遊客。平時來訪可在大片綠草坡上野餐、放風箏，幾乎不用走路，非常適合長輩和小孩！</div>
+                    <div class="spot-tags">
+                        <span class="spot-tag pink">長輩友善</span>
+                        <span class="spot-tag green">輕鬆不累</span>
+                        <span class="spot-tag yellow">熱氣球</span>
+                        <span class="spot-tag blue">絕美風景</span>
+                    </div>
+                    <div class="spot-actions">
+                        <a href="https://www.google.com/maps/dir/?api=1&destination=22.9133,121.1236" target="_blank" class="spot-btn primary"><span>📍</span><span>導航前往</span></a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 池上伯朗大道 -->
+            <div class="spot-detail-card">
+                <div class="carousel" id="carousel-s5">
+                    <div class="carousel-inner">
+                        <div class="carousel-item" style="background-image: url('https://www.taiwan.net.tw/att/1/big_scenic_spots/pic_A12-00329_7.jpg')"><div class="carousel-caption">伯朗大道</div></div>
+                        <div class="carousel-item" style="background-image: url('https://www.taiwan.net.tw/att/1/big_scenic_spots/pic_A12-00329_3.jpg')"><div class="carousel-caption">金城武樹</div></div>
+                        <div class="carousel-item" style="background-image: url('https://www.taiwan.net.tw/att/1/big_scenic_spots/pic_A12-00329_5.jpg')"><div class="carousel-caption">天堂之路</div></div>
+                        <div class="carousel-item" style="background-image: url('https://www.taiwan.net.tw/att/1/big_scenic_spots/pic_A12-00329_8.jpg')"><div class="carousel-caption">稻田風光</div></div>
+                    </div>
+                    <button class="carousel-btn prev" onclick="moveCarousel('carousel-s5', -1)">‹</button>
+                    <button class="carousel-btn next" onclick="moveCarousel('carousel-s5', 1)">›</button>
+                    <div class="carousel-dots" id="dots-s5"></div>
+                </div>
+                <div class="spot-content">
+                    <div class="spot-title-row"><div class="spot-name-large">🚴 池上伯朗大道</div><div class="spot-badge must">必去</div></div>
+                    <div class="spot-info-row"><span>📍</span><span>台東縣池上鄉錦新三號道路</span></div>
+                    <div class="spot-info-row"><span>🕐</span><span>全天開放（建議白天前往）</span></div>
+                    <div class="spot-desc">伯朗大道是池上鄉的一條田園小路，被譽為「翠綠的天堂路」。因伯朗咖啡及金城武的航空廣告而聲名大噪，沒有任何電線桿與房屋的筆直道路，讓人感受大自然的純粹。建議租借電動自行車漫遊，必拍「金城武樹」和「天堂之路」！</div>
+                    <div class="spot-tags">
+                        <span class="spot-tag yellow">電動車遊</span>
+                        <span class="spot-tag pink">金城武樹</span>
+                        <span class="spot-tag green">稻田美景</span>
+                        <span class="spot-tag blue">網美必拍</span>
+                    </div>
+                    <div class="spot-actions">
+                        <a href="https://www.google.com/maps/dir/?api=1&destination=23.1028,121.2156" target="_blank" class="spot-btn primary"><span>📍</span><span>導航前往</span></a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 關山親水公園 -->
+            <div class="spot-detail-card">
+                <div class="carousel" id="carousel-s6">
+                    <div class="carousel-inner">
+                        <div class="carousel-item" style="background-image: url('https://www.erv-nsa.gov.tw/image/93093/1024x768')"><div class="carousel-caption">親水公園入口</div></div>
+                        <div class="carousel-item" style="background-image: url('https://www.erv-nsa.gov.tw/image/93094/1024x768')"><div class="carousel-caption">人工湖景</div></div>
+                        <div class="carousel-item" style="background-image: url('https://www.erv-nsa.gov.tw/image/93095/1024x768')"><div class="carousel-caption">綠蔭步道</div></div>
+                        <div class="carousel-item" style="background-image: url('https://www.erv-nsa.gov.tw/image/93096/1024x768')"><div class="carousel-caption">自行車道</div></div>
+                    </div>
+                    <button class="carousel-btn prev" onclick="moveCarousel('carousel-s6', -1)">‹</button>
+                    <button class="carousel-btn next" onclick="moveCarousel('carousel-s6', 1)">›</button>
+                    <div class="carousel-dots" id="dots-s6"></div>
+                </div>
+                <div class="spot-content">
+                    <div class="spot-title-row"><div class="spot-name-large">🌳 關山親水公園</div><div class="spot-badge recommend">推薦</div></div>
+                    <div class="spot-info-row"><span>📍</span><span>台東縣關山鎮隆盛路1號</span></div>
+                    <div class="spot-info-row"><span>🕐</span><span>07:00-17:30</span></div>
+                    <div class="spot-desc">關山親水公園是台灣首座環保公園，占地約32公頃，利用新武呂溪和豐富的地下源流，規劃為充滿鄉野氣息的親水空間。園內有長約800公尺的人工湖、觀景亭台、賞鳥屋等設施，草地大、林蔭多，長輩可以坐著休息，小孩可以跑跳玩耍！</div>
+                    <div class="spot-tags">
+                        <span class="spot-tag green">長輩友善</span>
+                        <span class="spot-tag blue">自行車道</span>
+                        <span class="spot-tag yellow">賞鳥生態</span>
+                    </div>
+                    <div class="spot-actions">
+                        <a href="https://www.google.com/maps/dir/?api=1&destination=23.0464,121.1658" target="_blank" class="spot-btn primary"><span>📍</span><span>導航前往</span></a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 初鹿牧場 -->
+            <div class="spot-detail-card">
+                <div class="carousel" id="carousel-s7">
+                    <div class="carousel-inner">
+                        <div class="carousel-item" style="background-image: url('https://www.taiwan.net.tw/att/1/big_scenic_spots/pic_388_8.jpg')"><div class="carousel-caption">牧場風光</div></div>
+                        <div class="carousel-item" style="background-image: url('https://www.taiwan.net.tw/att/1/big_scenic_spots/pic_388_5.jpg')"><div class="carousel-caption">可愛乳牛</div></div>
+                        <div class="carousel-item" style="background-image: url('https://www.taiwan.net.tw/att/1/big_scenic_spots/pic_388_3.jpg')"><div class="carousel-caption">草原景色</div></div>
+                        <div class="carousel-item" style="background-image: url('https://www.taiwan.net.tw/att/1/big_scenic_spots/pic_388_7.jpg')"><div class="carousel-caption">餵食體驗</div></div>
+                    </div>
+                    <button class="carousel-btn prev" onclick="moveCarousel('carousel-s7', -1)">‹</button>
+                    <button class="carousel-btn next" onclick="moveCarousel('carousel-s7', 1)">›</button>
+                    <div class="carousel-dots" id="dots-s7"></div>
+                </div>
+                <div class="spot-content">
+                    <div class="spot-title-row"><div class="spot-name-large">🐄 初鹿牧場</div><div class="spot-badge backup">加碼</div></div>
+                    <div class="spot-info-row"><span>📍</span><span>台東縣卑南鄉明峰村牧場1號</span></div>
+                    <div class="spot-info-row"><span>🕐</span><span>08:00-17:00</span></div>
+                    <div class="spot-desc">初鹿牧場是台東著名的觀光牧場，擁有大片青青草原和可愛的乳牛。小朋友可以近距離接觸牛、羊、馬等動物，還可以餵食體驗。牧場鮮奶製品非常有名，冰淇淋和鮮乳饅頭必吃！是親子同遊的絕佳選擇。</div>
+                    <div class="spot-tags">
+                        <span class="spot-tag pink">親子首選</span>
+                        <span class="spot-tag yellow">動物餵食</span>
+                        <span class="spot-tag green">草原風光</span>
+                    </div>
+                    <div class="spot-actions">
+                        <a href="https://www.google.com/maps/dir/?api=1&destination=22.8547,121.0497" target="_blank" class="spot-btn primary"><span>📍</span><span>導航前往</span></a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 鐵花村 -->
+            <div class="spot-detail-card">
+                <div class="carousel" id="carousel-s8">
+                    <div class="carousel-inner">
+                        <div class="carousel-item" style="background-image: url('https://www.taiwan.net.tw/att/1/big_scenic_spots/pic_C100_437_2.jpg')"><div class="carousel-caption">鐵花村入口</div></div>
+                        <div class="carousel-item" style="background-image: url('https://www.taiwan.net.tw/att/1/big_scenic_spots/pic_C100_437_3.jpg')"><div class="carousel-caption">彩繪熱氣球燈</div></div>
+                        <div class="carousel-item" style="background-image: url('https://www.taiwan.net.tw/att/1/big_scenic_spots/pic_C100_437_4.jpg')"><div class="carousel-caption">文創市集</div></div>
+                        <div class="carousel-item" style="background-image: url('https://www.taiwan.net.tw/att/1/big_scenic_spots/pic_C100_437_5.jpg')"><div class="carousel-caption">夜間氛圍</div></div>
+                    </div>
+                    <button class="carousel-btn prev" onclick="moveCarousel('carousel-s8', -1)">‹</button>
+                    <button class="carousel-btn next" onclick="moveCarousel('carousel-s8', 1)">›</button>
+                    <div class="carousel-dots" id="dots-s8"></div>
+                </div>
+                <div class="spot-content">
+                    <div class="spot-title-row"><div class="spot-name-large">🎪 鐵花村文創市集</div><div class="spot-badge backup">加碼</div></div>
+                    <div class="spot-info-row"><span>📍</span><span>台東市新生路135巷26號</span></div>
+                    <div class="spot-info-row"><span>🕐</span><span>週三至週日 17:00-22:00</span></div>
+                    <div class="spot-desc">鐵花村是台東市區的文創藝術聚落，由舊台鐵宿舍改建而成。村內有許多手作文創攤位、原住民藝術品、在地伴手禮，以及不定期的Live演唱會。夜晚點亮的彩繪熱氣球燈非常浪漫，是買伴手禮和感受台東文青氛圍的好去處！</div>
+                    <div class="spot-tags">
+                        <span class="spot-tag blue">文創市集</span>
+                        <span class="spot-tag yellow">伴手禮</span>
+                        <span class="spot-tag pink">夜間浪漫</span>
+                    </div>
+                    <div class="spot-actions">
+                        <a href="https://www.google.com/maps/dir/?api=1&destination=22.7553,121.1444" target="_blank" class="spot-btn primary"><span>📍</span><span>導航前往</span></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 美食 Tab -->
+        <div id="tab-food" class="tab-content">
+            <div class="food-section"><div class="food-section-title">🏙️ 高雄美食</div><div class="food-list">
+                <div class="food-item"><span class="food-icon">🍽️</span><div><div class="food-name">福園台菜海鮮</div><div class="food-type">漢來體系・合菜</div></div></div>
+                <div class="food-item"><span class="food-icon">🦆</span><div><div class="food-name">鴨肉珍</div><div class="food-type">在地小吃</div></div></div>
+                <div class="food-item"><span class="food-icon">🍜</span><div><div class="food-name">港園牛肉麵</div><div class="food-type">牛肉麵</div></div></div>
+                <div class="food-item"><span class="food-icon">🥛</span><div><div class="food-name">老江紅茶牛奶</div><div class="food-type">飲品</div></div></div>
+                <div class="food-item"><span class="food-icon">🏮</span><div><div class="food-name">六合夜市</div><div class="food-type">觀光夜市</div></div></div>
+            </div></div>
+            <div class="food-section"><div class="food-section-title">🌾 台東美食</div><div class="food-list">
+                <div class="food-item"><span class="food-icon">🍜</span><div><div class="food-name">阿咪米苔目</div><div class="food-type">必吃米苔目</div></div></div>
+                <div class="food-item"><span class="food-icon">🌳</span><div><div class="food-name">榕樹下米苔目</div><div class="food-type">米苔目</div></div></div>
+                <div class="food-item"><span class="food-icon">🍱</span><div><div class="food-name">池上便當</div><div class="food-type">必吃！</div></div></div>
+                <div class="food-item"><span class="food-icon">🦀</span><div><div class="food-name">東港強海產</div><div class="food-type">海鮮</div></div></div>
+            </div></div>
+            <div class="souvenir-section"><div class="food-section-title">🎁 伴手禮</div><div class="souvenir-title">高雄</div><div class="souvenir-list"><div class="souvenir-item">🎨 駁二文創</div><div class="souvenir-item">🛍️ 義享天地</div></div><div class="souvenir-title">台東</div><div class="souvenir-list"><div class="souvenir-item">🎪 鐵花村</div><div class="souvenir-item">🍠 地瓜酥</div><div class="souvenir-item">🍡 麻糬</div><div class="souvenir-item">🧁 黑糖糕</div></div></div>
+        </div>
+        
+        <!-- 交通 Tab -->
+        <div id="tab-transport" class="tab-content">
+            <div class="transport-card"><div class="transport-header hsr"><span>🚄</span><span>Day 1｜高鐵</span></div><div class="transport-body"><div class="transport-route"><div class="transport-city"><div class="transport-city-name">桃園</div><div class="transport-city-station">高鐵站</div></div><div class="transport-arrow">→</div><div class="transport-city"><div class="transport-city-name">高雄</div><div class="transport-city-station">左營站</div></div></div><div class="transport-details"><div class="transport-detail"><span class="transport-label">建議班次</span><span class="transport-value">07:00-07:30</span></div></div></div></div>
+            <div class="transport-card"><div class="transport-header train"><span>🚃</span><span>Day 2｜台鐵 自強161</span></div><div class="transport-body"><div class="transport-route"><div class="transport-city"><div class="transport-city-name">高雄</div></div><div class="transport-arrow">→</div><div class="transport-city"><div class="transport-city-name">台東</div></div></div><div class="transport-details"><div class="transport-detail"><span class="transport-label">時間</span><span class="transport-value">10:30 → 12:15</span></div><div class="transport-detail"><span class="transport-label">車程</span><span class="transport-value">約 1 小時 45 分</span></div></div></div></div>
+            <div class="transport-card"><div class="transport-header car"><span>🚗</span><span>Day 2-4｜台東租車</span></div><div class="transport-body"><div class="transport-details"><div class="transport-detail"><span class="transport-label">數量</span><span class="transport-value">2 台</span></div><div class="transport-detail"><span class="transport-label">取車</span><span class="transport-value">台東火車站附近</span></div><div class="transport-detail"><span class="transport-label">還車</span><span class="transport-value">Day 4 中午</span></div></div></div></div>
+            <div class="transport-card"><div class="transport-header train"><span>🚃</span><span>Day 4｜台鐵 自強477 直達</span></div><div class="transport-body"><div class="transport-route"><div class="transport-city"><div class="transport-city-name">台東</div></div><div class="transport-arrow">→</div><div class="transport-city"><div class="transport-city-name">中壢</div></div></div><div class="transport-details"><div class="transport-detail"><span class="transport-label">時間</span><span class="transport-value">13:56 → 19:24</span></div><div class="transport-detail"><span class="transport-label">車程</span><span class="transport-value">約 5.5 小時</span></div><div class="transport-detail"><span class="transport-label">優點</span><span class="transport-value">直達不轉車 👍</span></div></div></div></div>
+            <div class="transport-card"><div class="transport-header taxi"><span>🚕</span><span>Day 4｜中壢 → 楊梅</span></div><div class="transport-body"><div class="transport-details"><div class="transport-detail"><span class="transport-label">推薦</span><span class="transport-value">計程車 2 台</span></div><div class="transport-detail"><span class="transport-label">備選</span><span class="transport-value">台鐵區間車</span></div></div></div></div>
+        </div>
+        
+        <!-- 預算 Tab -->
+        <div id="tab-budget" class="tab-content">
+            <div class="budget-summary"><div class="budget-box"><div class="budget-box-label">人數</div><div class="budget-box-value">9 人</div></div><div class="budget-box"><div class="budget-box-label">天數</div><div class="budget-box-value">4 天</div></div><div class="budget-box"><div class="budget-box-label">預估</div><div class="budget-box-value highlight">$14萬</div></div></div>
+            <div class="budget-table"><div class="budget-row"><span>🚄 交通</span><span>$40,000-45,000</span></div><div class="budget-row"><span>🏨 住宿</span><span>$60,000-72,000</span></div><div class="budget-row"><span>🍽️ 餐飲+活動</span><span>$22,000-31,000</span></div><div class="budget-row total"><span>💰 合計</span><span>$135,000-145,000</span></div></div>
+            <div class="card" style="margin-top:18px"><div class="card-header"><div class="card-icon pink">👨‍👩‍👧</div><div><div class="card-title">成員組成</div><div class="card-subtitle">3 個家庭，共 9 人</div></div></div><div class="members-grid"><div class="member-card"><div class="member-icon">👴👵</div><div class="member-title">爸媽</div><div class="member-count">2 人</div></div><div class="member-card"><div class="member-icon">👨‍👩‍👧‍👧</div><div class="member-title">我們家</div><div class="member-count">4 人</div></div><div class="member-card"><div class="member-icon">👨‍👩‍👧</div><div class="member-title">弟弟家</div><div class="member-count">3 人</div></div></div></div>
+        </div>
+    </main>
+    <nav class="app-nav">
+        <button class="nav-item active" data-tab="schedule"><div class="nav-icon">📅</div><span class="nav-label">行程</span></button>
+        <button class="nav-item" data-tab="hotel"><div class="nav-icon">🏨</div><span class="nav-label">住宿</span></button>
+        <button class="nav-item" data-tab="spots"><div class="nav-icon">📍</div><span class="nav-label">景點</span></button>
+        <button class="nav-item" data-tab="food"><div class="nav-icon">🍽️</div><span class="nav-label">美食</span></button>
+        <button class="nav-item" data-tab="transport"><div class="nav-icon">🚗</div><span class="nav-label">交通</span></button>
+        <button class="nav-item" data-tab="budget"><div class="nav-icon">💰</div><span class="nav-label">預算</span></button>
+    </nav>
+</div>
+<script>
+// Tab 切換
+document.querySelectorAll('.nav-item').forEach(item => {
+    item.addEventListener('click', function() {
+        document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        this.classList.add('active');
+        document.getElementById('tab-' + this.getAttribute('data-tab')).classList.add('active');
+        this.querySelector('.nav-icon').classList.add('bounce');
+        setTimeout(() => this.querySelector('.nav-icon').classList.remove('bounce'), 400);
+        document.querySelector('.app-content').scrollTo({ top: 0, behavior: 'smooth' });
+    });
+});
+
+function toggleDay(header) { header.closest('.day-card').classList.toggle('expanded'); }
+
+// 輪播功能
+const carousels = {};
+
+function initCarousel(id) {
+    const carousel = document.getElementById(id);
+    if (!carousel) return;
+    const inner = carousel.querySelector('.carousel-inner');
+    const items = carousel.querySelectorAll('.carousel-item');
+    const dotsId = 'dots-' + id.split('-')[1];
+    const dotsContainer = document.getElementById(dotsId);
+    
+    carousels[id] = { currentIndex: 0, total: items.length };
+    
+    if (dotsContainer) {
+        dotsContainer.innerHTML = '';
+        for (let i = 0; i < items.length; i++) {
+            const dot = document.createElement('div');
+            dot.className = 'carousel-dot' + (i === 0 ? ' active' : '');
+            dot.onclick = () => goToSlide(id, i);
+            dotsContainer.appendChild(dot);
+        }
+    }
+    
+    // 自動輪播
+    setInterval(() => moveCarousel(id, 1), 5000);
+    
+    // 觸控滑動
+    let startX = 0;
+    carousel.addEventListener('touchstart', e => startX = e.touches[0].clientX);
+    carousel.addEventListener('touchend', e => {
+        const diff = startX - e.changedTouches[0].clientX;
+        if (Math.abs(diff) > 50) moveCarousel(id, diff > 0 ? 1 : -1);
+    });
+}
+
+function moveCarousel(id, direction) {
+    if (!carousels[id]) return;
+    const data = carousels[id];
+    data.currentIndex = (data.currentIndex + direction + data.total) % data.total;
+    updateCarousel(id);
+}
+
+function goToSlide(id, index) {
+    if (!carousels[id]) return;
+    carousels[id].currentIndex = index;
+    updateCarousel(id);
+}
+
+function updateCarousel(id) {
+    const carousel = document.getElementById(id);
+    if (!carousel) return;
+    const inner = carousel.querySelector('.carousel-inner');
+    const dotsId = 'dots-' + id.split('-')[1];
+    const dotsContainer = document.getElementById(dotsId);
+    const dots = dotsContainer ? dotsContainer.querySelectorAll('.carousel-dot') : [];
+    const index = carousels[id].currentIndex;
+    
+    inner.style.transform = `translateX(-${index * 100}%)`;
+    dots.forEach((dot, i) => dot.classList.toggle('active', i === index));
+}
+
+// 初始化所有輪播
+document.addEventListener('DOMContentLoaded', function() {
+    // 飯店輪播
+    initCarousel('carousel-h1');
+    initCarousel('carousel-h2');
+    // 景點輪播
+    initCarousel('carousel-s1');
+    initCarousel('carousel-s2');
+    initCarousel('carousel-s3');
+    initCarousel('carousel-s4');
+    initCarousel('carousel-s5');
+    initCarousel('carousel-s6');
+    initCarousel('carousel-s7');
+    initCarousel('carousel-s8');
+});
+</script>
+</body>
+</html>
